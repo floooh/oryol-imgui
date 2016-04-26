@@ -1,0 +1,14 @@
+#
+# oryol-imgui
+#
+---
+imports:
+    fips-imgui:
+        git:    https://github.com/fungos/fips-imgui.git
+    oryol:
+        git:    https://github.com/floooh/oryol.git
+exports:
+    header-dirs:
+        - src
+    modules:
+        IMUI:   src/IMUI
