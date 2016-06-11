@@ -158,7 +158,7 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
         }
 
         if (Input::KeyboardAttached()) {
-            const wchar_t* text = Input::CapturedText();
+            const wchar_t* text = Input::Text();
             while (wchar_t c = *text++) {
                 io.AddInputCharacter((unsigned short)c);
             }
