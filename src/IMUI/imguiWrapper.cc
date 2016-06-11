@@ -140,7 +140,7 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
     // transfer input
     if (Input::IsValid()) {
 
-        if (Input::MouseAttached) {
+        if (Input::MouseAttached()) {
             io.MousePos.x = Input::MousePosition().x;
             io.MousePos.y = Input::MousePosition().y;
             io.MouseWheel = Input::MouseScroll().y;
