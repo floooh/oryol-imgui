@@ -5,8 +5,6 @@
     @brief imgui wrapper class for Oryol
 */
 #include "Core/Types.h"
-#include "Input/Core/Mouse.h"
-#include "Input/Core/Key.h"
 #include "Gfx/Gfx.h"
 #include "imgui.h"
 

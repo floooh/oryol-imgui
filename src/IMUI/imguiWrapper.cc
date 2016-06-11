@@ -140,31 +140,31 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
     // transfer input
     if (Input::IsValid()) {
 
-        const Mouse& mouse = Input::Mouse();
-        if (mouse.Attached) {
-            io.MousePos.x = mouse.Position.x;
-            io.MousePos.y = mouse.Position.y;
-            io.MouseWheel = mouse.Scroll.y;
+        if (Input::MouseAttached) {
+            io.MousePos.x = Input::MousePosition().x;
+            io.MousePos.y = Input::MousePosition().y;
+            io.MouseWheel = Input::MouseScroll().y;
             for (int btn = 0; btn < 3; btn++) {
-                io.MouseDown[btn] = mouse.ButtonDown((Mouse::Button)btn) || mouse.ButtonPressed((Mouse::Button)btn);
+                io.MouseDown[btn] = Input::MouseButtonDown((MouseButton::Code)btn)||Input::MouseButtonPressed((MouseButton::Code)btn);
             }
         }
-        const Touchpad& touchpad = Input::Touchpad();
-        if (touchpad.Attached && (touchpad.Position[0].x > 0.0f) && (touchpad.Position[0].y > 0.0f)) {
-            io.MousePos.x = touchpad.Position[0].x;
-            io.MousePos.y = touchpad.Position[0].y;
-            io.MouseDown[0] = touchpad.Tapped || touchpad.Panning;
+        if (Input::TouchpadAttached()) {
+            const glm::vec2& touchPos = Input::TouchPosition(0);
+            if ((touchPos.x > 0.0f) && (touchPos.y > 0.0f)) {
+                io.MousePos.x = touchPos.x;
+                io.MousePos.y = touchPos.y;
+                io.MouseDown[0] = Input::TouchTapped() || Input::TouchPanning();
+            }
         }
 
-        const Keyboard& kbd = Input::Keyboard();
-        if (kbd.Attached) {
-            const wchar_t* text = kbd.CapturedText();
+        if (Input::KeyboardAttached()) {
+            const wchar_t* text = Input::Text();
             while (wchar_t c = *text++) {
                 io.AddInputCharacter((unsigned short)c);
             }
-            io.KeyCtrl  = kbd.KeyPressed(Key::LeftControl) || kbd.KeyPressed(Key::RightControl);
-            io.KeyShift = kbd.KeyPressed(Key::LeftShift) || kbd.KeyPressed(Key::RightShift);
-            io.KeyAlt   = kbd.KeyPressed(Key::LeftAlt) || kbd.KeyPressed(Key::RightAlt);
+            io.KeyCtrl  = Input::KeyPressed(Key::LeftControl) || Input::KeyPressed(Key::RightControl);
+            io.KeyShift = Input::KeyPressed(Key::LeftShift) || Input::KeyPressed(Key::RightShift);
+            io.KeyAlt   = Input::KeyPressed(Key::LeftAlt) || Input::KeyPressed(Key::RightAlt);
 
             const static Key::Code keys[] = {
                 Key::Tab, Key::Left, Key::Right, Key::Up, Key::Down, Key::Home, Key::End,
@@ -172,7 +172,7 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
                 Key::A, Key::C, Key::V, Key::X, Key::Y, Key::Z
             };
             for (auto key : keys) {
-                io.KeysDown[key] = kbd.KeyDown(key)|kbd.KeyPressed(key);;
+                io.KeysDown[key] = Input::KeyDown(key)|Input::KeyPressed(key);;
             }
         }
     }
