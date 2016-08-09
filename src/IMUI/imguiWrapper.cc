@@ -92,10 +92,10 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
 
     unsigned char* pixels;
     int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-    const int imgSize = width * height * sizeof(uint32_t);
+    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+    const int imgSize = width * height * sizeof(uint8_t);
 
-    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::RGBA8);
+    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::L8);
     texSetup.Sampler.WrapU = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.WrapV = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
