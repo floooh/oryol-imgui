@@ -17,9 +17,10 @@ imguiWrapper* imguiWrapper::self = nullptr;
 
 //------------------------------------------------------------------------------
 void
-imguiWrapper::Setup() {
+imguiWrapper::Setup(const IMUISetup& setup) {
     o_assert_dbg(!this->IsValid());
     self = this;
+    this->fonts.Fill(nullptr);
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
@@ -52,7 +53,7 @@ imguiWrapper::Setup() {
     // create gfx resources
     this->resLabel = Gfx::PushResourceLabel();
     this->setupMeshAndDrawState();
-    this->setupFontTexture();
+    this->setupFontTexture(setup);
     Gfx::PopResourceLabel();
 
     this->isValid = true;
@@ -77,15 +78,24 @@ imguiWrapper::IsValid() const {
 
 //------------------------------------------------------------------------------
 void
-imguiWrapper::setupFontTexture() {
+imguiWrapper::setupFontTexture(const IMUISetup& setup) {
     ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->AddFontDefault();
+    for (int i = 0; i < setup.numFonts; i++) {
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        const auto& desc = setup.fonts[i];
+        this->fonts[i] = io.Fonts->AddFontFromMemoryTTF(desc.ttf_data, desc.ttf_size, desc.font_height, &fontConfig);
+        o_assert_dbg(this->fonts[i]);
+    }
 
     unsigned char* pixels;
     int width, height;
-    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-    const int imgSize = width * height * sizeof(uint8_t);
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    const int imgSize = width * height * sizeof(uint32_t);
 
-    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::L8);
+    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::RGBA8);
     texSetup.Sampler.WrapU = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.WrapV = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;

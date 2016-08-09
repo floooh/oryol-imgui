@@ -12,10 +12,10 @@ IMUI::_state* IMUI::state = nullptr;
 
 //------------------------------------------------------------------------------
 void
-IMUI::Setup() {
+IMUI::Setup(const IMUISetup& setup) {
     o_assert_dbg(!IsValid());
     state = Memory::New<_state>();
-    state->imguiWrapper.Setup();
+    state->imguiWrapper.Setup(setup);
 }
 
 //------------------------------------------------------------------------------
@@ -25,6 +25,13 @@ IMUI::Discard() {
     state->imguiWrapper.Discard();
     Memory::Delete(state);
     state = nullptr;
+}
+
+//------------------------------------------------------------------------------
+ImFont*
+IMUI::Font(int index) {
+    o_assert_dbg(IsValid());
+    return state->imguiWrapper.fonts[index];
 }
 
 //------------------------------------------------------------------------------

@@ -12,6 +12,7 @@
 */
 #include "Core/Types.h"
 #include "IMUI/imguiWrapper.h"
+#include "IMUI/IMUISetup.h"
 #include "Core/Time/Duration.h"
 
 namespace Oryol {
@@ -19,11 +20,14 @@ namespace Oryol {
 class IMUI {
 public:
     /// setup the IMUI module
-    static void Setup();
+    static void Setup(const IMUISetup& setup=IMUISetup());
     /// shutdown the IMUI module
     static void Discard();
     /// test if IMUI module has been setup
     static bool IsValid();
+    /// get pointer to Imgui font by index (same order in IMUISetup, can return nullptr)
+    static ImFont* Font(int fontIndex);
+
     /// start new ImGui frame, with frame time
     static void NewFrame(Duration frameDuration);
     /// start new ImGui frame, with fixed 1/60sec frametime
