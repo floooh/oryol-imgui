@@ -23,11 +23,19 @@ public:
     bool IsValid() const;
     /// call before issuing ImGui commands
     void NewFrame(float frameDurationInSeconds);
+    /// grab a new ImTextureID
+    ImTextureID AllocImage();
+    /// free a ImTextureID
+    void FreeImage(ImTextureID img);
+    /// associate an ImTextureID with an Oryol texture
+    void BindImage(ImTextureID img, Id texId);
 
     /// setup font texture
     void setupFontTexture(const IMUISetup& setup);
     /// setup draw state
     void setupMeshAndDrawState();
+    /// setup dummy 'white' texture
+    void setupWhiteTexture();
     /// imgui's draw callback
     static void imguiRenderDrawLists(ImDrawData* draw_data);
 
@@ -41,6 +49,11 @@ public:
     ResourceLabel resLabel;
     DrawState drawState;
     StaticArray<ImFont*, MaxNumFonts> fonts;
+    Id whiteTexture;
+    Id fontTexture;
+    static const int MaxImages = 256;
+    StaticArray<Id, MaxImages> images;
+    Array<intptr_t> freeImageSlots;
     ImDrawVert vertexData[MaxNumVertices];
     ImDrawIdx indexData[MaxNumIndices];
 };

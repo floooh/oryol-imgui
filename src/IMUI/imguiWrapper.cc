@@ -22,6 +22,11 @@ imguiWrapper::Setup(const IMUISetup& setup) {
     self = this;
     this->fonts.Fill(nullptr);
 
+    this->freeImageSlots.Reserve(MaxImages);
+    for (int i = MaxImages-1; i>=0; i--) {
+        this->freeImageSlots.Add(i);
+    }
+
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
 
@@ -53,6 +58,7 @@ imguiWrapper::Setup(const IMUISetup& setup) {
     // create gfx resources
     this->resLabel = Gfx::PushResourceLabel();
     this->setupMeshAndDrawState();
+    this->setupWhiteTexture();
     this->setupFontTexture(setup);
     Gfx::PopResourceLabel();
 
@@ -78,6 +84,24 @@ imguiWrapper::IsValid() const {
 
 //------------------------------------------------------------------------------
 void
+imguiWrapper::setupWhiteTexture() {
+    // this is the dummy texture for user-provided images that have
+    // not been bound yet (because they might still be async-loading)
+    const int w = 4;
+    const int h = 4;
+    uint32 pixels[w * h];
+    Memory::Fill(pixels, sizeof(pixels), 0xFF);
+    auto texSetup = TextureSetup::FromPixelData(w, h, 1, TextureType::Texture2D, PixelFormat::RGBA8);
+    texSetup.Sampler.WrapU = TextureWrapMode::Repeat;
+    texSetup.Sampler.WrapV = TextureWrapMode::Repeat;
+    texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
+    texSetup.Sampler.MagFilter = TextureFilterMode::Nearest;
+    texSetup.ImageData.Sizes[0][0] = sizeof(pixels);
+    this->whiteTexture = Gfx::CreateResource(texSetup, pixels, sizeof(pixels));
+}
+
+//------------------------------------------------------------------------------
+void
 imguiWrapper::setupFontTexture(const IMUISetup& setup) {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -92,20 +116,20 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
 
     unsigned char* pixels;
     int width, height;
-    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-    const int imgSize = width * height * sizeof(uint8_t);
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    const int imgSize = width * height * sizeof(uint32_t);
 
-    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::L8);
+    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::RGBA8);
     texSetup.Sampler.WrapU = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.WrapV = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
     texSetup.Sampler.MagFilter = TextureFilterMode::Nearest;
     texSetup.ImageData.Sizes[0][0] = imgSize;
-    Id tex = Gfx::CreateResource(texSetup, pixels, imgSize);
-    this->drawState.FSTexture[IMUITextures::Texture] = tex;
+    this->fontTexture = Gfx::CreateResource(texSetup, pixels, imgSize);
+    this->drawState.FSTexture[IMUITextures::Texture] = this->fontTexture;
 
-    // there will only be one texture
-    io.Fonts->TexID = nullptr;
+    io.Fonts->TexID = this->AllocImage();
+    this->BindImage(io.Fonts->TexID, this->fontTexture);
 }
 
 //------------------------------------------------------------------------------
@@ -135,6 +159,29 @@ imguiWrapper::setupMeshAndDrawState() {
     ps.RasterizerState.CullFaceEnabled = false;
     ps.RasterizerState.SampleCount = Gfx::DisplayAttrs().SampleCount;
     this->drawState.Pipeline = Gfx::CreateResource(ps);
+}
+
+//------------------------------------------------------------------------------
+ImTextureID
+imguiWrapper::AllocImage() {
+    o_assert_dbg(!this->freeImageSlots.Empty());
+    return ImTextureID(this->freeImageSlots.PopBack());
+}
+
+//------------------------------------------------------------------------------
+void
+imguiWrapper::FreeImage(ImTextureID img) {
+    intptr_t slot = (intptr_t) img;
+    o_assert_dbg(this->images[slot].IsValid());
+    this->images[slot].Invalidate();
+}
+
+//------------------------------------------------------------------------------
+void
+imguiWrapper::BindImage(ImTextureID img, Id texId) {
+    intptr_t slot = (intptr_t) img;
+    o_assert_dbg(!this->images[slot].IsValid());
+    this->images[slot] = texId;
 }
 
 //------------------------------------------------------------------------------
@@ -238,8 +285,7 @@ imguiWrapper::imguiRenderDrawLists(ImDrawData* draw_data) {
 
     Gfx::UpdateVertices(self->drawState.Mesh[0], self->vertexData, vertexDataSize);
     Gfx::UpdateIndices(self->drawState.Mesh[0], self->indexData, indexDataSize);
-    Gfx::ApplyDrawState(self->drawState);
-    Gfx::ApplyUniformBlock(vsParams);
+    Id curTexture;
     int elmOffset = 0;
     for (int cmdListIndex = 0; cmdListIndex < numCmdLists; cmdListIndex++) {
         const ImDrawList* cmd_list = draw_data->CmdLists[cmdListIndex];
@@ -249,6 +295,18 @@ imguiWrapper::imguiRenderDrawLists(ImDrawData* draw_data) {
                 pcmd->UserCallback(cmd_list, pcmd);
             }
             else {
+                const Id& newTexture = self->images[intptr_t(pcmd->TextureId)];
+                if (curTexture != newTexture) {
+                    if (newTexture.IsValid()) {
+                        self->drawState.FSTexture[IMUITextures::Texture] = newTexture;
+                    }
+                    else {
+                        self->drawState.FSTexture[IMUITextures::Texture] = self->whiteTexture;
+                    }
+                    curTexture = newTexture;
+                    Gfx::ApplyDrawState(self->drawState);
+                    Gfx::ApplyUniformBlock(vsParams);
+                }
                 Gfx::ApplyScissorRect((int)pcmd->ClipRect.x,
                                       (int)(height - pcmd->ClipRect.w),
                                       (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),

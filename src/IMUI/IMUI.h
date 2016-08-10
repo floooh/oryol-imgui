@@ -14,6 +14,7 @@
 #include "IMUI/imguiWrapper.h"
 #include "IMUI/IMUISetup.h"
 #include "Core/Time/Duration.h"
+#include "Resource/Id.h"
 
 namespace Oryol {
 
@@ -27,6 +28,13 @@ public:
     static bool IsValid();
     /// get pointer to Imgui font by index (same order in IMUISetup, can return nullptr)
     static ImFont* Font(int fontIndex);
+
+    /// grab a new ImTextureID
+    static ImTextureID AllocImage();
+    /// free a ImTextureID
+    static void FreeImage(ImTextureID img);
+    /// associate an ImTextureID with an Oryol texture
+    static void BindImage(ImTextureID img, Id texId);
 
     /// start new ImGui frame, with frame time
     static void NewFrame(Duration frameDuration);

@@ -48,5 +48,26 @@ IMUI::NewFrame() {
     state->imguiWrapper.NewFrame(1.0f / 60.0f);
 }
 
+//------------------------------------------------------------------------------
+ImTextureID
+IMUI::AllocImage() {
+    o_assert_dbg(IsValid());
+    return state->imguiWrapper.AllocImage();
+}
+
+//------------------------------------------------------------------------------
+void
+IMUI::FreeImage(ImTextureID img) {
+    o_assert_dbg(IsValid());
+    state->imguiWrapper.FreeImage(img);
+}
+
+//------------------------------------------------------------------------------
+void
+IMUI::BindImage(ImTextureID img, Id texId) {
+    o_assert_dbg(IsValid());
+    state->imguiWrapper.BindImage(img, texId);
+}
+
 } // namespace Oryol
 
