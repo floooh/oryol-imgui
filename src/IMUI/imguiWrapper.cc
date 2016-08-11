@@ -171,7 +171,7 @@ imguiWrapper::AllocImage() {
 //------------------------------------------------------------------------------
 void
 imguiWrapper::FreeImage(ImTextureID img) {
-    intptr_t slot = (intptr_t) img;
+    int slot = int(intptr_t(img));
     o_assert_dbg(this->images[slot].IsValid());
     this->images[slot].Invalidate();
 }
@@ -179,7 +179,7 @@ imguiWrapper::FreeImage(ImTextureID img) {
 //------------------------------------------------------------------------------
 void
 imguiWrapper::BindImage(ImTextureID img, Id texId) {
-    intptr_t slot = (intptr_t) img;
+    int slot = int(intptr_t(img));
     o_assert_dbg(!this->images[slot].IsValid());
     this->images[slot] = texId;
 }
@@ -295,7 +295,7 @@ imguiWrapper::imguiRenderDrawLists(ImDrawData* draw_data) {
                 pcmd->UserCallback(cmd_list, pcmd);
             }
             else {
-                const Id& newTexture = self->images[intptr_t(pcmd->TextureId)];
+                const Id& newTexture = self->images[int(intptr_t(pcmd->TextureId))];
                 if (curTexture != newTexture) {
                     if (newTexture.IsValid()) {
                         self->drawState.FSTexture[IMUITextures::Texture] = newTexture;
