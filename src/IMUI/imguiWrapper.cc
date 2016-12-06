@@ -206,14 +206,22 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
             }
         }
         if (Input::TouchpadAttached()) {
-            const glm::vec2& touchPos = Input::TouchPosition(0);
-            if ((touchPos.x > 0.0f) && (touchPos.y > 0.0f)) {
+            if (Input::TouchTapped() || Input::TouchPanning()) {
+                const glm::vec2& touchPos = Input::TouchPosition(0);
                 io.MousePos.x = touchPos.x;
                 io.MousePos.y = touchPos.y;
-                io.MouseDown[0] = Input::TouchTapped() || Input::TouchPanning();
+                io.MouseDown[0] = true;
+            }
+            else {
+                // set mouse-pos to -1,-1 one frame after touch released, this
+                // fixes ImGui's sudden size jumps when trying to resize window!
+                if (!io.MouseDown[0]) {
+                    io.MousePos.x = -1;
+                    io.MousePos.y = -1;
+                }
+                io.MouseDown[0] = false;
             }
         }
-
         if (Input::KeyboardAttached()) {
             const wchar_t* text = Input::Text();
             while (wchar_t c = *text++) {
