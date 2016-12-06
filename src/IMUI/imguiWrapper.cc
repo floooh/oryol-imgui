@@ -206,7 +206,7 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
             }
         }
         if (Input::TouchpadAttached()) {
-            if (Input::TouchTapped() || Input::TouchPanning()) {
+            if (Input::TouchTouched()) {
                 const glm::vec2& touchPos = Input::TouchPosition(0);
                 io.MousePos.x = touchPos.x;
                 io.MousePos.y = touchPos.y;
