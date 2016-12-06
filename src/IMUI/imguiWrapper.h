@@ -46,6 +46,7 @@ public:
     static imguiWrapper* self;
 
     bool isValid = false;
+    bool touchActive = false;
     ResourceLabel resLabel;
     DrawState drawState;
     StaticArray<ImFont*, MaxNumFonts> fonts;
