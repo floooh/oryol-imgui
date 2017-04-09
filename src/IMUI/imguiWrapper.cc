@@ -91,7 +91,7 @@ imguiWrapper::setupWhiteTexture() {
     const int h = 4;
     uint32 pixels[w * h];
     Memory::Fill(pixels, sizeof(pixels), 0xFF);
-    auto texSetup = TextureSetup::FromPixelData(w, h, 1, TextureType::Texture2D, PixelFormat::RGBA8);
+    auto texSetup = TextureSetup::FromPixelData2D(w, h, 1, PixelFormat::RGBA8);
     texSetup.Sampler.WrapU = TextureWrapMode::Repeat;
     texSetup.Sampler.WrapV = TextureWrapMode::Repeat;
     texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
@@ -119,7 +119,7 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     const int imgSize = width * height * sizeof(uint32_t);
 
-    auto texSetup = TextureSetup::FromPixelData(width, height, 1, TextureType::Texture2D, PixelFormat::RGBA8);
+    auto texSetup = TextureSetup::FromPixelData2D(width, height, 1, PixelFormat::RGBA8);
     texSetup.Sampler.WrapU = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.WrapV = TextureWrapMode::ClampToEdge;
     texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
@@ -189,7 +189,7 @@ void
 imguiWrapper::NewFrame(float frameDurationInSeconds) {
 
     ImGuiIO& io = ImGui::GetIO();
-    DisplayAttrs dispAttrs = Gfx::RenderTargetAttrs();
+    DisplayAttrs dispAttrs = Gfx::PassAttrs();
     o_assert_dbg((dispAttrs.FramebufferWidth > 0) && (dispAttrs.FramebufferHeight > 0));
     io.DisplaySize = ImVec2((float)dispAttrs.FramebufferWidth, (float)dispAttrs.FramebufferHeight);
     io.DeltaTime = frameDurationInSeconds;
