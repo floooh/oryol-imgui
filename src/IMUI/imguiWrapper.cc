@@ -126,7 +126,7 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
     texSetup.Sampler.MagFilter = TextureFilterMode::Nearest;
     texSetup.ImageData.Sizes[0][0] = imgSize;
     this->fontTexture = Gfx::CreateResource(texSetup, pixels, imgSize);
-    this->drawState.FSTexture[IMUITextures::Texture] = this->fontTexture;
+    this->drawState.FSTexture[IMUIShader::tex] = this->fontTexture;
 
     io.Fonts->TexID = this->AllocImage();
     this->BindImage(io.Fonts->TexID, this->fontTexture);
@@ -287,10 +287,10 @@ imguiWrapper::imguiRenderDrawLists(ImDrawData* draw_data) {
     }
 
     // draw command lists
-    IMUIShader::VSParams vsParams;
+    IMUIShader::vsParams vsParams;
     const float width  = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
-    vsParams.Ortho = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
+    vsParams.ortho = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
     const int vertexDataSize = numVertices * sizeof(ImDrawVert);
     const int indexDataSize = numIndices * sizeof(ImDrawIdx);
 
@@ -309,10 +309,10 @@ imguiWrapper::imguiRenderDrawLists(ImDrawData* draw_data) {
                 const Id& newTexture = self->images[int(intptr_t(pcmd->TextureId))];
                 if (curTexture != newTexture) {
                     if (newTexture.IsValid()) {
-                        self->drawState.FSTexture[IMUITextures::Texture] = newTexture;
+                        self->drawState.FSTexture[IMUIShader::tex] = newTexture;
                     }
                     else {
-                        self->drawState.FSTexture[IMUITextures::Texture] = self->whiteTexture;
+                        self->drawState.FSTexture[IMUIShader::tex] = self->whiteTexture;
                     }
                     curTexture = newTexture;
                     Gfx::ApplyDrawState(self->drawState);
