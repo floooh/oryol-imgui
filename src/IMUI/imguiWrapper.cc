@@ -17,9 +17,10 @@ imguiWrapper* imguiWrapper::self = nullptr;
 
 //------------------------------------------------------------------------------
 void
-imguiWrapper::Setup(const IMUISetup& setup) {
+imguiWrapper::Setup(const IMUISetup& setup_) {
     o_assert_dbg(!this->IsValid());
     self = this;
+    this->setup = setup_;
     this->fonts.Fill(nullptr);
 
     this->freeImageSlots.Reserve(MaxImages);
@@ -28,7 +29,18 @@ imguiWrapper::Setup(const IMUISetup& setup) {
     }
 
     ImGuiIO& io = ImGui::GetIO();
-    io.IniFilename = nullptr;
+    if (this->setup.IniFilename.IsValid()) {
+        io.IniFilename = this->setup.IniFilename.AsCStr();
+    }
+    else {
+        io.IniFilename = nullptr;
+    }
+    if (this->setup.LogFilename.IsValid()) {
+        io.LogFilename = this->setup.LogFilename.AsCStr();
+    }
+    else {
+        io.LogFilename = nullptr;
+    }
 
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
     io.KeyMap[ImGuiKey_Tab] = Key::Tab; 
@@ -59,7 +71,7 @@ imguiWrapper::Setup(const IMUISetup& setup) {
     this->resLabel = Gfx::PushResourceLabel();
     this->setupMeshAndDrawState();
     this->setupWhiteTexture();
-    this->setupFontTexture(setup);
+    this->setupFontTexture(this->setup);
     Gfx::PopResourceLabel();
 
     this->isValid = true;

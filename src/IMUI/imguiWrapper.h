@@ -45,6 +45,7 @@ public:
 
     static imguiWrapper* self;
 
+    IMUISetup setup;
     bool isValid = false;
     ResourceLabel resLabel;
     DrawState drawState;

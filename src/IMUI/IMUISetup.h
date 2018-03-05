@@ -4,6 +4,7 @@
     @class Oryol::IMUISetup
     @brief Dear Imgui wrapper runtime config options
 */
+#include "Core/String/String.h"
 #include "Core/Containers/StaticArray.h"
 #include "Core/Assertion.h"
 
@@ -11,6 +12,10 @@ namespace Oryol {
 
 class IMUISetup {
 public:
+    /// set optional IniFilename where ImGui will save its settings (default is that ini files are disabled)
+    String IniFilename;
+    /// set optional LogFilename, same rules as IniFilename (but also see ImGui::LogToFile())
+    String LogFilename;
     /// add TTF font from static in-memory data
     void AddFontFromMemory(void* ttf_data, int ttf_size, float font_height);
 
