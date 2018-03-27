@@ -28,6 +28,8 @@ imguiWrapper::Setup(const IMUISetup& setup_) {
         this->freeImageSlots.Add(i);
     }
 
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
     ImGuiIO& io = ImGui::GetIO();
     if (this->setup.IniFilename.IsValid()) {
         io.IniFilename = this->setup.IniFilename.AsCStr();
@@ -82,7 +84,7 @@ void
 imguiWrapper::Discard() {
     o_assert_dbg(this->IsValid());
     ImGui::GetIO().Fonts->TexID = 0;
-    ImGui::Shutdown();
+    ImGui::DestroyContext();
     Gfx::DestroyResources(this->resLabel);
     this->isValid = false;
     self = nullptr;
