@@ -105,13 +105,18 @@ imguiWrapper::setupWhiteTexture() {
     const int h = 4;
     uint32 pixels[w * h];
     Memory::Fill(pixels, sizeof(pixels), 0xFF);
-    auto texSetup = TextureSetup::FromPixelData2D(w, h, 1, PixelFormat::RGBA8);
-    texSetup.Sampler.WrapU = TextureWrapMode::Repeat;
-    texSetup.Sampler.WrapV = TextureWrapMode::Repeat;
-    texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
-    texSetup.Sampler.MagFilter = TextureFilterMode::Nearest;
-    texSetup.ImageData.Sizes[0][0] = sizeof(pixels);
-    this->whiteTexture = Gfx::CreateResource(texSetup, pixels, sizeof(pixels));
+    this->whiteTexture = Gfx::CreateTexture(TextureDesc()
+        .Type(TextureType::Texture2D)
+        .Width(w)
+        .Height(h)
+        .NumMipMaps(1)
+        .Format(PixelFormat::RGBA8)
+        .WrapU(TextureWrapMode::Repeat)
+        .WrapV(TextureWrapMode::Repeat)
+        .MinFilter(TextureFilterMode::Nearest)
+        .MagFilter(TextureFilterMode::Nearest)
+        .MipSize(0, 0, sizeof(pixels))
+        .MipContent(0, 0, pixels));
 }
 
 //------------------------------------------------------------------------------
@@ -133,13 +138,18 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     const int imgSize = width * height * sizeof(uint32_t);
 
-    auto texSetup = TextureSetup::FromPixelData2D(width, height, 1, PixelFormat::RGBA8);
-    texSetup.Sampler.WrapU = TextureWrapMode::ClampToEdge;
-    texSetup.Sampler.WrapV = TextureWrapMode::ClampToEdge;
-    texSetup.Sampler.MinFilter = TextureFilterMode::Nearest;
-    texSetup.Sampler.MagFilter = TextureFilterMode::Nearest;
-    texSetup.ImageData.Sizes[0][0] = imgSize;
-    this->fontTexture = Gfx::CreateResource(texSetup, pixels, imgSize);
+    this->fontTexture = Gfx::CreateTexture(TextureDesc()
+        .Type(TextureType::Texture2D)
+        .Width(width)
+        .Height(height)
+        .NumMipMaps(1)
+        .Format(PixelFormat::RGBA8)
+        .WrapU(TextureWrapMode::ClampToEdge)
+        .WrapV(TextureWrapMode::ClampToEdge)
+        .MinFilter(TextureFilterMode::Nearest)
+        .MagFilter(TextureFilterMode::Nearest)
+        .MipSize(0, 0, imgSize)
+        .MipContent(0, 0, pixels));
     this->drawState.FSTexture[IMUIShader::tex] = this->fontTexture;
 
     io.Fonts->TexID = this->AllocImage();
@@ -149,30 +159,35 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
 //------------------------------------------------------------------------------
 void
 imguiWrapper::setupMeshAndDrawState() {
-    MeshSetup meshSetup = MeshSetup::Empty(MaxNumVertices, Usage::Stream, IndexType::Index16, MaxNumIndices, Usage::Stream);
-    meshSetup.Layout
-        .Add(VertexAttr::Position, VertexFormat::Float2)
-        .Add(VertexAttr::TexCoord0, VertexFormat::Float2)
-        .Add(VertexAttr::Color0, VertexFormat::UByte4N);
-    o_assert_dbg(meshSetup.Layout.ByteSize() == sizeof(ImDrawVert));
-    this->drawState.Mesh[0] = Gfx::CreateResource(meshSetup);
-    o_assert(this->drawState.Mesh[0].IsValid());
-    o_assert(Gfx::QueryResourceInfo(this->drawState.Mesh[0]).State == ResourceState::Valid);
+    VertexLayout layout = {
+        { "position", VertexFormat::Float2 },
+        { "texcoord0", VertexFormat::Float2 },
+        { "color0", VertexFormat::UByte4N }
+    };
+    this->drawState.VertexBuffers[0] = Gfx::CreateBuffer(BufferDesc()
+        .Type(BufferType::VertexBuffer)
+        .Size(MaxNumVertices * sizeof(ImDrawVert))
+        .Usage(Usage::Stream));
+    this->drawState.IndexBuffer = Gfx::CreateBuffer(BufferDesc()
+        .Type(BufferType::IndexBuffer)
+        .Size(MaxNumIndices * sizeof(uint16_t))
+        .Usage(Usage::Stream));
 
-    Id shd = Gfx::CreateResource(IMUIShader::Setup());
-    auto ps = PipelineSetup::FromLayoutAndShader(meshSetup.Layout, shd);
-    ps.DepthStencilState.DepthWriteEnabled = false;
-    ps.DepthStencilState.DepthCmpFunc = CompareFunc::Always;
-    ps.BlendState.BlendEnabled = true;
-    ps.BlendState.SrcFactorRGB = BlendFactor::SrcAlpha;
-    ps.BlendState.DstFactorRGB = BlendFactor::OneMinusSrcAlpha;
-    ps.BlendState.ColorFormat = Gfx::DisplayAttrs().ColorPixelFormat;
-    ps.BlendState.DepthFormat = Gfx::DisplayAttrs().DepthPixelFormat;
-    ps.BlendState.ColorWriteMask = PixelChannel::RGB;
-    ps.RasterizerState.ScissorTestEnabled = true;
-    ps.RasterizerState.CullFaceEnabled = false;
-    ps.RasterizerState.SampleCount = Gfx::DisplayAttrs().SampleCount;
-    this->drawState.Pipeline = Gfx::CreateResource(ps);
+    Id shd = Gfx::CreateShader(IMUIShader::Desc());
+    this->drawState.Pipeline = Gfx::CreatePipeline(PipelineDesc()
+        .Shader(shd)
+        .Layout(0, layout)
+        .IndexType(IndexType::UInt16)
+        .DepthWriteEnabled(false)
+        .DepthCmpFunc(CompareFunc::Always)
+        .BlendEnabled(true)
+        .BlendSrcFactorRGB(BlendFactor::SrcAlpha)
+        .BlendDstFactorRGB(BlendFactor::OneMinusSrcAlpha)
+        .ColorFormat(Gfx::DisplayAttrs().ColorFormat)
+        .DepthFormat(Gfx::DisplayAttrs().DepthFormat)
+        .SampleCount(Gfx::DisplayAttrs().SampleCount)
+        .ColorWriteMask(PixelChannel::RGB)
+        .CullFaceEnabled(false));
 }
 
 //------------------------------------------------------------------------------
@@ -204,8 +219,8 @@ imguiWrapper::NewFrame(float frameDurationInSeconds) {
 
     ImGuiIO& io = ImGui::GetIO();
     DisplayAttrs dispAttrs = Gfx::PassAttrs();
-    o_assert_dbg((dispAttrs.FramebufferWidth > 0) && (dispAttrs.FramebufferHeight > 0));
-    io.DisplaySize = ImVec2((float)dispAttrs.FramebufferWidth, (float)dispAttrs.FramebufferHeight);
+    o_assert_dbg((dispAttrs.Width > 0) && (dispAttrs.Height > 0));
+    io.DisplaySize = ImVec2((float)dispAttrs.Width, (float)dispAttrs.Height);
     io.DeltaTime = frameDurationInSeconds;
 
     // transfer input
@@ -301,8 +316,8 @@ imguiWrapper::imguiRenderDrawLists(ImDrawData* draw_data) {
     const int vertexDataSize = numVertices * sizeof(ImDrawVert);
     const int indexDataSize = numIndices * sizeof(ImDrawIdx);
 
-    Gfx::UpdateVertices(self->drawState.Mesh[0], self->vertexData, vertexDataSize);
-    Gfx::UpdateIndices(self->drawState.Mesh[0], self->indexData, indexDataSize);
+    Gfx::UpdateBuffer(self->drawState.VertexBuffers[0], self->vertexData, vertexDataSize);
+    Gfx::UpdateBuffer(self->drawState.IndexBuffer, self->indexData, indexDataSize);
     Id curTexture;
     int elmOffset = 0;
     for (int cmdListIndex = 0; cmdListIndex < numCmdLists; cmdListIndex++) {
