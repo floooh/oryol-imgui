@@ -218,7 +218,7 @@ void
 imguiWrapper::NewFrame(float frameDurationInSeconds) {
 
     ImGuiIO& io = ImGui::GetIO();
-    DisplayAttrs dispAttrs = Gfx::PassAttrs();
+    const DisplayAttrs& dispAttrs = Gfx::DisplayAttrs();
     o_assert_dbg((dispAttrs.Width > 0) && (dispAttrs.Height > 0));
     io.DisplaySize = ImVec2((float)dispAttrs.Width, (float)dispAttrs.Height);
     io.DeltaTime = frameDurationInSeconds;
