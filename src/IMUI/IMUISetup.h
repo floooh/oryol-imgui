@@ -18,16 +18,16 @@ public:
     String LogFilename;
     /// add TTF font from static in-memory data
     void AddFontFromMemory(void* ttf_data, int ttf_size, float font_height);
-	void AddFontFromMemory(void* ttf_data, int ttf_size, float font_height, ImFontConfig* config);
-	void AddFontFromMemory(void* ttf_data, int ttf_size, float font_height, ImFontConfig* config, const ImWchar* ranges, bool compressed);
+    void AddFontFromMemory(void* ttf_data, int ttf_size, float font_height, ImFontConfig* config);
+    void AddFontFromMemory(void* ttf_data, int ttf_size, float font_height, ImFontConfig* config, const ImWchar* ranges, bool compressed);
 
     struct fontDesc {
         void* ttf_data = nullptr;
         int ttf_size = 0;
         float font_height = 13;
-		const ImWchar* glyph_ranges;
-		ImFontConfig* font_config;
-		bool compressed = false;
+        const ImWchar* glyph_ranges;
+        ImFontConfig* font_config;
+        bool compressed = false;
 	};
     static const int MaxFonts = 4;
     int numFonts = 0;

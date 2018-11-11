@@ -122,11 +122,11 @@ imguiWrapper::setupFontTexture(const IMUISetup& setup) {
     io.Fonts->AddFontDefault();
     for (int i = 0; i < setup.numFonts; i++) {
         const auto& desc = setup.fonts[i];
-		desc.font_config->FontDataOwnedByAtlas = false;
-		if (desc.compressed)
-			this->fonts[i] = io.Fonts->AddFontFromMemoryCompressedTTF(desc.ttf_data, desc.ttf_size, desc.font_height, desc.font_config, desc.glyph_ranges);
-		else 
-			this->fonts[i] = io.Fonts->AddFontFromMemoryTTF(desc.ttf_data, desc.ttf_size, desc.font_height, desc.font_config, desc.glyph_ranges);
+        desc.font_config->FontDataOwnedByAtlas = false;
+        if (desc.compressed)
+            this->fonts[i] = io.Fonts->AddFontFromMemoryCompressedTTF(desc.ttf_data, desc.ttf_size, desc.font_height, desc.font_config, desc.glyph_ranges);
+        else 
+            this->fonts[i] = io.Fonts->AddFontFromMemoryTTF(desc.ttf_data, desc.ttf_size, desc.font_height, desc.font_config, desc.glyph_ranges);
         o_assert_dbg(this->fonts[i]);
     }
 
