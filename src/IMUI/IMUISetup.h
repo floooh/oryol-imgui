@@ -37,27 +37,27 @@ public:
 //------------------------------------------------------------------------------
 inline void
 IMUISetup::AddFontFromMemory(void* ttf_data, const int ttf_size, const float font_height) {
-	ImFontConfig config;
-	AddFontFromMemory(ttf_data, ttf_size, font_height, &config);
+    ImFontConfig config;
+    AddFontFromMemory(ttf_data, ttf_size, font_height, &config);
 }
 
 inline void
 IMUISetup::AddFontFromMemory(void* ttf_data, const int ttf_size, const float font_height, ImFontConfig* config) {
-	AddFontFromMemory(ttf_data, ttf_size, font_height, config, ImGui::GetIO().Fonts->GetGlyphRangesDefault(), false);
+    AddFontFromMemory(ttf_data, ttf_size, font_height, config, ImGui::GetIO().Fonts->GetGlyphRangesDefault(), false);
 }
 
 inline void
 IMUISetup::AddFontFromMemory(void* ttf_data, const int ttf_size, const float font_height, ImFontConfig* config, const ImWchar* ranges, bool compressed = false) {
-	o_assert_dbg(ttf_data && (ttf_size > 0));
-	fontDesc desc;
-	desc.ttf_data = ttf_data;
-	desc.ttf_size = ttf_size;
-	desc.font_height = font_height;
-	desc.glyph_ranges = ranges;
-	desc.font_config = config;
-	desc.compressed = compressed;
+    o_assert_dbg(ttf_data && (ttf_size > 0));
+    fontDesc desc;
+    desc.ttf_data = ttf_data;
+    desc.ttf_size = ttf_size;
+    desc.font_height = font_height;
+    desc.glyph_ranges = ranges;
+    desc.font_config = config;
+    desc.compressed = compressed;
 
-	this->fonts[this->numFonts++] = desc;
+    this->fonts[this->numFonts++] = desc;
 }
 
 
